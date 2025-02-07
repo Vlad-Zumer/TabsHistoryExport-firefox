@@ -1,9 +1,7 @@
 /////////////////////////////// PREAMBLE ///////////////////////////////////////
-let DEBUG = true;
-let EARLY_BREAK = false;
-let CURRENT_WIN_ONLY = true;
-let PAGE_LOAD_TIMER = 5000;
-let DRY_RUN = false;
+/** @type {Options} */
+let options = null;
+/** @type {[string]} */
 let LOG = [];
 
 class CaughtError { }
@@ -22,7 +20,7 @@ async function mainExport() {
         // reset log
         LOG = [];
         await saveLog();
-        let res = await getOptions();
+        let res = await loadOptions();
         if (res instanceof CaughtError) return;
         if (res === false) {
             res = saveOptions();
@@ -40,7 +38,7 @@ async function mainExport() {
             logInfo(`tabId: ${tabId}`)
 
             // dry run, do nothing
-            if (DRY_RUN) {
+            if (options.dryRun) {
                 logInfo(`[DRY_MOCK]: Making tabId: ${tabId} active`);
                 logInfo(`[DRY_MOCK]: Going back in tabId(${tabId}) history`);
                 logInfo(`[DRY_MOCK]: Going forward in tabId(${tabId}) history`);
@@ -64,7 +62,7 @@ async function mainExport() {
             if (res instanceof CaughtError) return;
             data.push(wentForward.urls);
 
-            if (EARLY_BREAK) break;
+            if (options.earlyBreak) break;
         }
         logInfo("Done getting data");
 
@@ -85,7 +83,7 @@ async function mainExport() {
 async function saveDataToFile(data) {
     try {
         logInfo("Saving tabs data")
-        let spaces = DEBUG ? 4 : null;
+        let spaces = options.debug ? 4 : null;
         let jsonStr = JSON.stringify(data, null, spaces);
         await browser.storage.local.set({ "TAB_HIST_EXPORT_DATA": jsonStr });
 
@@ -124,7 +122,7 @@ async function restoreTabToPage(tabId, deltaBackwards) {
         logInfo(`Going back to tabId(${tabId})'s original page`);
         for (let i = 0; i < deltaBackwards; i++) {
             browser.tabs.goBack(tabId);
-            await sleep(PAGE_LOAD_TIMER);
+            await sleep(options.pageLoadTime);
         }
 
         return tabId;
@@ -155,7 +153,7 @@ async function goForwardToLast(tabId) {
             await browser.tabs.goForward(tab.id);
 
             // this doesn't wait for the page to fully load, may need to add some content script to talk to
-            await sleep(PAGE_LOAD_TIMER);
+            await sleep(options.pageLoadTime);
 
             tab = await browser.tabs.get(tabId);
             while (tab.status != "complete") {
@@ -192,7 +190,7 @@ async function goBackToFirst(tabId) {
             await browser.tabs.goBack(tab.id);
 
             // this doesn't wait for the page to fully load, may need to add some content script to talk to
-            await sleep(PAGE_LOAD_TIMER);
+            await sleep(options.pageLoadTime);
 
             tab = await browser.tabs.get(tabId);
             while (tab.status != "complete") {
@@ -239,7 +237,7 @@ async function activateTab(tabId) {
  */
 async function getAllTabIds() {
     try {
-        const query = CURRENT_WIN_ONLY ? { currentWindow: true } : {};
+        const query = options.currentWinOnly ? { currentWindow: true } : {};
         let allTabs = await browser.tabs.query(query);
         return allTabs.map(tab => tab.id);
     } catch (e) {
@@ -250,18 +248,11 @@ async function getAllTabIds() {
 }
 
 /**
- * @returns {boolean | CaughtError}
+ * @returns {boolean | CaughtError} - returns true if successfully saved some options object
  */
 async function saveOptions() {
     try {
-        let data = {
-            debug: DEBUG,
-            earlyBreak: EARLY_BREAK,
-            pageLoadTime: PAGE_LOAD_TIMER,
-            currentWinOnly: CURRENT_WIN_ONLY,
-            dryRun: DRY_RUN,
-        };
-        await browser.storage.local.set({ "options": data });
+        await browser.storage.local.set({ "options": options });
         return true;
     } catch (e) {
         logErr(e);
@@ -273,20 +264,11 @@ async function saveOptions() {
 /**
  * @returns {boolean | CaughtError} - returns true if successfully loaded some options object
  */
-async function getOptions() {
+async function loadOptions() {
     try {
-        let data = await browser.storage.local.get("options");
-        if (!data) return false;
-        if (!data.options) return false;
-        let options = data.options;
-
-        DEBUG = options.debug ?? DEBUG;
-        EARLY_BREAK = options.earlyBreak ?? EARLY_BREAK;
-        PAGE_LOAD_TIMER = options.pageLoadTime ?? PAGE_LOAD_TIMER;
-        CURRENT_WIN_ONLY = options.currentWinOnly ?? CURRENT_WIN_ONLY;
-        DRY_RUN = options.dryRun ?? DRY_RUN;
-        await saveOptions();
-        return true;
+        let data = await getDataFromLocal("options", DEFAULT_OPTIONS);
+        options = data.data;
+        return data.success;
     } catch (e) {
         logErr(e);
         showNotification(NOTIFICATIONS.ERROR, `${DISPLAY_EXT_NAME} | ERROR`, "Could not get options, using defaults.");
@@ -332,7 +314,13 @@ const NOTIFICATIONS = {
  */
 function getAsStr(obj) {
     if (typeof obj === 'string') return obj;
-    if (obj && obj.stack && obj.message && typeof obj.stack === 'string' && typeof obj.message === 'string') {
+    if (!isNullOrUndefined(obj) &&
+        !isNullOrUndefined(obj.stack) &&
+        !isNullOrUndefined(obj.message) &&
+        typeof obj.stack === 'string' &&
+        typeof obj.message === 'string') {
+
+        // this is an error message
         return `${obj.message}`;
     }
     return JSON.stringify(obj);
@@ -352,7 +340,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param {any} data 
 */
 function logInfo(data) {
-    if (!DEBUG) return;
+    if (!options.debug) return;
     let logStr = `[INFO]: ${getAsStr(data)}`;
     LOG.push(logStr);
     saveLog();
@@ -364,7 +352,7 @@ function logInfo(data) {
  * @param {any} data 
 */
 function logWarn(data) {
-    if (!DEBUG) return;
+    if (!options.debug) return;
     let logStr = `[WARNING]: ${getAsStr(data)}`;
     LOG.push(logStr);
     saveLog();
@@ -376,7 +364,7 @@ function logWarn(data) {
  * @param {any} data 
 */
 function logErr(data) {
-    if (!DEBUG) return;
+    if (!options.debug) return;
     let logStr = `[ERROR]: ${getAsStr(data)}`;
     LOG.push(logStr);
     saveLog();
@@ -406,25 +394,4 @@ async function isAndroid() {
     let platformInfo = await browser.runtime.getPlatformInfo()
     logInfo(platformInfo)
     return platformInfo.os == 'android'
-}
-
-function getTimeString() {
-    let res = '';
-    let d = new Date();
-    let formatDate = (arg) => (arg < 10) ? '0' + arg : arg;
-
-    try {
-        let date = formatDate(d.getDate());
-        let month = formatDate(d.getMonth() + 1);
-        let year = d.getFullYear();
-        let hours = formatDate(d.getHours());
-        let minutes = formatDate(d.getMinutes());
-        let seconds = formatDate(d.getSeconds());
-        res = "" + date + "-" + month + "-" + year + "_" + hours + "-" + minutes + "-" + seconds;
-    }
-    catch (e) {
-        res = d.getTime();
-    }
-
-    return res;
 }
