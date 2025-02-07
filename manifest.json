@@ -1,0 +1,41 @@
+{
+  "name": "Tabs History Export",
+  "version": "0.0.3",
+  "description": "Exports the open tabs and their history to a json file",
+
+  "manifest_version": 2,
+
+  "icons": {
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "64": "icons/icon-64.png",
+    "96": "icons/icon-96.png"
+  },
+  
+  "background": {
+    "scripts": [
+      "background_script.js"
+    ]
+  },
+  
+  "browser_action": {
+    "default_icon": {
+      "64": "icons/icon.png"
+    },
+    "default_title": "TabsHistorySync"
+  },
+
+  "options_ui": {
+    "page": "options/index.html",
+    "browser_style": true,
+    "open_in_tab": true
+  },
+
+  "permissions": [
+    "downloads",
+    "notifications",
+    "tabs",
+    "storage",
+    "unlimitedStorage"
+  ]
+}

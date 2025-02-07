@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="data">Data</div>
+    <div id="options">
+        <div><h2>Options:</h2></div>
+        <form id="options-form">
+            <div>
+                <label for="debug-check">Debug</label>
+                <input type="checkbox" id="debug-check">
+            </div>
+            <div>
+                <label for="only-curr-window-check">Only for active window</label>
+                <input type="checkbox" id="only-curr-window-check">
+            </div>
+            <div>
+                <label for="test-check">Test on first tab only</label>
+                <input type="checkbox" id="test-check">
+            </div>
+            <div>
+                <label for="dry-run-check">Dry run</label>
+                <input type="checkbox" id="dry-run-check">
+            </div>
+            <div>
+                <label for="page-load-time">Time to load page (ms)</label>
+                <input type="number" id="page-load-time">
+                <input type="button" id="page-load-time-apply" value="Apply">
+            </div>
+        </form>
+    </div>
+    <div>
+        <div><h2>Logs:</h2></div>
+        <div id="logs"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
