@@ -22,7 +22,7 @@
     "default_icon": {
       "64": "icons/icon.png"
     },
-    "default_title": "TabsHistorySync"
+    "default_title": "TabsHistoryExporter"
   },
 
   "options_ui": {
