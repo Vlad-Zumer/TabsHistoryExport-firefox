@@ -17,10 +17,14 @@ function mainExportSync() {
 
 async function mainExport() {
     try {
-        // reset log
         LOG = [];
+        let res = await ensureOptionsPageVisited();
+        if (res instanceof CaughtError) return;
+        if (!res) return;
+
+        // reset log
         await saveLog();
-        let res = await loadOptions();
+        res = await loadOptions();
         if (res instanceof CaughtError) return;
         if (res === false) {
             res = saveOptions();
@@ -74,6 +78,14 @@ async function mainExport() {
         logErr(e);
         showNotification(NOTIFICATIONS.ERROR, `${DISPLAY_EXT_NAME} | ERROR`, "Something unexpected happened.");
     }
+}
+
+async function ensureOptionsPageVisited() {
+    let visited = await getDataFromLocal("hasVisitedOptions", false);
+    if (!visited.data) {
+        showNotification(NOTIFICATIONS.ENSURE_OPTIONS_VISIT, `${DISPLAY_EXT_NAME}`, "Please visit the extension option page before starting the export process.")
+    }
+    return visited.data;
 }
 
 /**
@@ -300,6 +312,10 @@ const NOTIFICATIONS = {
     },
     ANDROID_DOWNLOAD: {
         id: "ANDROID_DOWNLOAD_NOTIFICATION",
+        iconUrl: browser.runtime.getURL("icons/icon.png"),
+    },
+    ENSURE_OPTIONS_VISIT: {
+        id: "ENSURE_OPTIONS_VISIT",
         iconUrl: browser.runtime.getURL("icons/icon.png"),
     }
 };

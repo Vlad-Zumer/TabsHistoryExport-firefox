@@ -108,7 +108,12 @@ async function setupEventListeners() {
     pageLoadTimeApplyBtn.addEventListener('click', onPageLoadTimeApplyBtnClicked);
 }
 
+async function setVisited() {
+    await setDataToLocal("hasVisitedOptions", true);
+}
+
 addEventListener("DOMContentLoaded", async () => {
+    await setVisited();
     await addDownloadLink();
     await setup();
     await showLog();
