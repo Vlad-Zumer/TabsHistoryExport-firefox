@@ -95,7 +95,7 @@ async function ensureOptionsPageVisited() {
 async function saveDataToFile(data) {
     try {
         logInfo("Saving tabs data")
-        let spaces = options.debug ? 4 : null;
+        let spaces = options.prettyJson ? 4 : null;
         let jsonStr = JSON.stringify(data, null, spaces);
         await browser.storage.local.set({ "TAB_HIST_EXPORT_DATA": jsonStr });
 

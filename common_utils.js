@@ -38,6 +38,7 @@ function isNullOrUndefined(obj) {
 /**
  * @typedef {Object} Options
  * @property {boolean} debug
+ * @property {boolean} prettyJson
  * @property {boolean} currentWinOnly
  * @property {boolean} earlyBreak
  * @property {boolean} dryRun
@@ -48,7 +49,7 @@ function isNullOrUndefined(obj) {
  * @constant
  * @type {Options}
 */
-const DEFAULT_OPTIONS = { debug: false, currentWinOnly: true, earlyBreak: false, pageLoadTime: 5000, dryRun: false }
+const DEFAULT_OPTIONS = { debug: false, prettyJson: false, currentWinOnly: true, earlyBreak: false, pageLoadTime: 5000, dryRun: false }
 
 //////////////////////////////////////////////////////////////////
 //                         STORAGE

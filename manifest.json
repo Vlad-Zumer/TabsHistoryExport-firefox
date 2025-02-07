@@ -1,6 +1,6 @@
 {
   "name": "Tabs History Export",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Exports the open tabs and their history to a json file",
 
   "manifest_version": 2,

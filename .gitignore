@@ -1,2 +1,3 @@
 *.zip
 tabs_hist_export*.json
+node_modules

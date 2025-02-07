@@ -30,6 +30,9 @@ async function setup() {
     let debugInput = document.getElementById("debug-check");
     debugInput.checked = options.debug;
 
+    let prettyJsonInput = document.getElementById("pretty-json-check");
+    prettyJsonInput = options.prettyJson;
+
     let currentWinOnlyInput  = document.getElementById("only-curr-window-check");
     currentWinOnlyInput.checked = options.currentWinOnly;
     
@@ -55,20 +58,32 @@ async function ensureOptions() {
     }
 }
 
+async function saveOptions() {
+    await setDataToLocal("options", options);
+}
+
 async function onDebugChanged() {
     let debugInput = document.getElementById("debug-check");
     let val = debugInput.checked;
     await ensureOptions();
     options.debug = val;
-    setDataToLocal("options", options);
+    await saveOptions();
+}
+
+async function onPrettyJsonChanged() {
+    let prettyJsonInput = document.getElementById("pretty-json-check");
+    let val = prettyJsonInput.checked;
+    await ensureOptions();
+    options.prettyJson = val;
+    await saveOptions();
 }
 
 async function onOnlyCurrWindowChanged() {
-    let debugInput = document.getElementById("only-curr-window-check");
-    let val = debugInput.checked;
+    let onlyCurrWindowInput = document.getElementById("only-curr-window-check");
+    let val = onlyCurrWindowInput.checked;
     await ensureOptions();
     options.currentWinOnly = val;
-    setDataToLocal("options", options);
+    await saveOptions();
 }
 
 async function onEarlyBreakChanged() {
@@ -76,7 +91,7 @@ async function onEarlyBreakChanged() {
     let val = earlyBreakInput.checked;
     await ensureOptions();
     options.earlyBreak = val;
-    setDataToLocal("options", options);
+    await saveOptions();
 }
 
 async function onDryRunChanged() {
@@ -84,7 +99,7 @@ async function onDryRunChanged() {
     let val = dryRunInput.checked;
     await ensureOptions();
     options.dryRun = val;
-    setDataToLocal("options", options);
+    await saveOptions();
 }
 
 async function onPageLoadTimeApplyBtnClicked() {
@@ -92,18 +107,25 @@ async function onPageLoadTimeApplyBtnClicked() {
     let val = parseInt(pageLoadTimeApplyBtn.value, 10);
     await ensureOptions();
     options.pageLoadTime = val;
-    setDataToLocal("options", options);
+    await saveOptions();
 }
 
 async function setupEventListeners() {
     let debugInput = document.getElementById("debug-check");
     debugInput.addEventListener('change', onDebugChanged);
+
+    let prettyJsonInput = document.getElementById("pretty-json-check");
+    prettyJsonInput.addEventListener('change', onPrettyJsonChanged);
+
     let onlyCurrWindowInput = document.getElementById("only-curr-window-check");
     onlyCurrWindowInput.addEventListener('change', onOnlyCurrWindowChanged);
+
     let earlyBreakInput = document.getElementById("test-check");
     earlyBreakInput.addEventListener('change', onEarlyBreakChanged);
+
     let dryRunInput = document.getElementById("dry-run-check");
     dryRunInput.addEventListener('change', onDryRunChanged);
+
     let pageLoadTimeApplyBtn = document.getElementById("page-load-time-apply");
     pageLoadTimeApplyBtn.addEventListener('click', onPageLoadTimeApplyBtnClicked);
 }
