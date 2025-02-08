@@ -52,6 +52,7 @@ async function mainExport() {
             }
 
             res = await activateTab(tabId);
+            if (res instanceof CaughtError) return;
             //   save history relative location
             //   go to beginning of history
             let wentBack = await goBackToFirst(tabId);
