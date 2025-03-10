@@ -231,7 +231,16 @@ async function activateTab(tabId) {
     try {
         logInfo(`Making tabId: ${tabId} active`);
         let tab = await browser.tabs.update(tabId, { active: true });
-        logInfo(`tabId has been preserved: ${tabId == tab.id}`)
+        if (tabId == tab.id)
+        {
+            logInfo("tabId has been preserved");
+        }
+        else
+        {
+            logWarn(`tabId has changed | original='${tabId}', new='${tab.id}'`);
+        }
+        logInfo(`tab.title: ${tab.title}`);
+
         while (tab.status != "complete") {
             // wait for tab to completely load
             await sleep(100)
